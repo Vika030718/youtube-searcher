@@ -1,0 +1,17 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+{% block content %}
+    {% if posts %}
+        <h1 class="title">{{user.nickname}}, here is the story of your search.</h1>
+        <table>
+            <tr valign="top">
+                <td class="search-history_date">When</td><td>What</td>
+            </tr>
+        </table>
+        {% for post in posts|sort(attribute='timestamp', reverse = True) %}
+            {% include 'search_history.html' %}
+        {% endfor %}
+    {% else %}
+        <h1 class="title">{{user.nickname}}, you have no search history.</h1>
+    {% endif %}
+{% endblock %}

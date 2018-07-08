@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <title>YoutubeSearcher</title>
+
+    <head>
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+        <link href="/static/css/styles.css" rel="stylesheet" media="screen">
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+
+    {% block navbar %}
+        <header>
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <a class="navbar-brand logo" href="{{ url_for('index') }}">Youtube Searcher</a>
+                <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    {% if g.user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user', nickname = g.user.nickname) }}">Your Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </header>
+    {% endblock %}
+
+    <main class="container-fluid" >
+        <div class="page" >
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li class="alert alert-success" role="alert">{{ message }} </li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            {% block content %}
+
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer text-center" >
+        {% block footer %}
+            <span>YoutubeSearcher, 2018</span>
+        {% endblock %}
+    </footer>
+</html>

@@ -1,0 +1,18 @@
+{% extends "base.html"%}
+{% block content %}
+	{% if g.user.is_authenticated %}
+		<h1 class="title">Hello, {{user.nickname}}! To search on Youtube - enter your keyword.</h1>
+		<form action="" method="post" name="search" class="form-inline my-2 my-lg-0">
+			{{form.hidden_tag()}} {{form.search_field(class_="form-control mr-sm-2")}}
+			<button class="btn btn-outline-success my-2 my-sm-0" type="submit" value="search">Search</button>
+		</form>
+		{% if video %}
+			<h2 class="search-title">We have found the <span class="search-count">{{video_count}}</span> videos:</h2>
+			<ul class="search-results">
+				{% for value in video %}
+					<li><a href="https://www.youtube.com/watch?v={{value['id']}}">{{value['title']}}</a></li>
+				{% endfor %}
+			</ul>
+		{% endif %}
+	{% endif %}
+{% endblock %}
