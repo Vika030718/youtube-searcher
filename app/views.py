@@ -2,21 +2,26 @@
 import datetime
 from flask_login import login_user, logout_user, current_user, login_required
 from flask import render_template, flash, redirect, url_for, request, g
-from app import app, db, lm
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import app, db, login_manager
 from .forms import SearchForm, RegistrationForm, LoginEmailForm
 from .models import User, SearchHistory, ROLE_USER
-from .youtube_sercher import Searcher
+from .youtube_searcher import Searcher
 
 
-@lm.user_loader
+
+@login_manager.user_loader
 def load_user(_id):
     return User.query.get(int(_id))
 
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    return redirect(url_for('login'))
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
+@login_required
 def index():
-    if g.user is None or g.user.is_authenticated is False:
-        return redirect(url_for('login'))
     form = SearchForm()
     if form.validate_on_submit():
         video = Searcher().youtube_search_all(form.search_field.data)
@@ -36,6 +41,7 @@ def index():
                            form=form,
                            user=g.user)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if g.user is not None and g.user.is_authenticated:
@@ -43,7 +49,8 @@ def login():
     login_email_form = LoginEmailForm()
     if login_email_form.validate_on_submit():
         user = User.query.filter_by(email=login_email_form.login_email.data).first()
-        if user and login_email_form.login_password.data == user.password:
+
+        if user and user.check_password(login_email_form.login_password.data):
             login_user(user)
             return redirect(url_for('index'))
         else:
@@ -52,13 +59,14 @@ def login():
                            title='Sign In',
                            login_email_form=login_email_form)
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if g.user is not None and g.user.is_authenticated:
         return redirect(url_for('index'))
     form = RegistrationForm()
     nickname = form.email.data
-    password = form.password.data
+    password = generate_password_hash(str(form.password.data), method='pbkdf2:sha1', salt_length=8)
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first() is None:
             user = User(nickname=nickname.split('@')[0],
@@ -75,6 +83,7 @@ def register():
                            title='Sign In',
                            form=form)
 
+
 def after_login(resp):
     if resp.email is None or resp.email == "":
         flash('Invalid login. Please try again.')
@@ -90,14 +99,17 @@ def after_login(resp):
     login_user(user)
     return redirect(request.args.get('next') or url_for('index'))
 
+
 @app.before_request
 def before_request():
     g.user = current_user
+
 
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
 
 @app.route('/user/<nickname>')
 @login_required
