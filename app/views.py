@@ -50,7 +50,8 @@ def login():
     if login_email_form.validate_on_submit():
         user = User.query.filter_by(email=login_email_form.login_email.data).first()
 
-        if user and user.check_password(login_email_form.login_password.data):
+        # if user and user.check_password(login_email_form.login_password.data):
+        if user and user.password == login_email_form.login_password.data:
             login_user(user)
             return redirect(url_for('index'))
         else:
@@ -66,7 +67,8 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     nickname = form.email.data
-    password = generate_password_hash(str(form.password.data), method='pbkdf2:sha1', salt_length=8)
+    # password = generate_password_hash(str(form.password.data))
+    password = form.password.data
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first() is None:
             user = User(nickname=nickname.split('@')[0],
