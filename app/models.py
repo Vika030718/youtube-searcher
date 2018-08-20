@@ -1,7 +1,7 @@
 """User model"""
 from hashlib import md5
 from app import db
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 ROLE_USER = 0
 ROLE_ADMIN = 1
@@ -17,6 +17,9 @@ class User(db.Model):
 
     def check_password(self, user_password):
         return check_password_hash(self.password, user_password)
+
+    def set_password(self, user_password):
+        self.password=generate_password_hash(user_password)
 
     @property
     def is_authenticated(self):

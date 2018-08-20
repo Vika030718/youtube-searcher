@@ -2,7 +2,7 @@
 import datetime
 from flask_login import login_user, logout_user, current_user, login_required
 from flask import render_template, flash, redirect, url_for, request, g
-from werkzeug.security import generate_password_hash, check_password_hash
+
 from app import app, db, login_manager
 from .forms import SearchForm, RegistrationForm, LoginEmailForm
 from .models import User, SearchHistory, ROLE_USER
@@ -50,8 +50,8 @@ def login():
     if login_email_form.validate_on_submit():
         user = User.query.filter_by(email=login_email_form.login_email.data).first()
 
-        # if user and user.check_password(login_email_form.login_password.data):
-        if user and user.password == login_email_form.login_password.data:
+        if user and user.check_password(login_email_form.login_password.data):
+        # if user and user.password == login_email_form.login_password.data:
             login_user(user)
             return redirect(url_for('index'))
         else:
@@ -67,14 +67,15 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     nickname = form.email.data
+
     # password = generate_password_hash(str(form.password.data))
-    password = form.password.data
+    # password = hashpw(str(form.password.data).encode('utf8'), gensalt())
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first() is None:
             user = User(nickname=nickname.split('@')[0],
                         email=form.email.data,
-                        password=password,
                         role=ROLE_USER)
+            password = user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
             login_user(user)
